@@ -36,9 +36,7 @@ describe('geminiTransformer', () => {
       const body = {
         _model: 'gemini-pro',
         systemInstruction: { parts: [{ text: 'You are helpful' }] },
-        contents: [
-          { role: 'user', parts: [{ text: 'Hello' }] },
-        ],
+        contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
       };
       const result = geminiTransformer.decodeRequest(body);
       expect(result.model).toBe('gemini-pro');
@@ -50,9 +48,7 @@ describe('geminiTransformer', () => {
       const body = {
         _model: 'gemini-1.5-pro',
         _stream: true,
-        contents: [
-          { role: 'user', parts: [{ text: 'Hi' }] },
-        ],
+        contents: [{ role: 'user', parts: [{ text: 'Hi' }] }],
       };
       const result = geminiTransformer.decodeRequest(body);
       expect(result.model).toBe('gemini-1.5-pro');
@@ -155,10 +151,12 @@ describe('geminiTransformer', () => {
   describe('decodeResponse', () => {
     it('converts Gemini response to OpenAI format', () => {
       const geminiResp = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello there' }], role: 'model' },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello there' }], role: 'model' },
+            finishReason: 'STOP',
+          },
+        ],
         usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
         modelVersion: 'gemini-1.5-pro',
       };
@@ -189,11 +187,13 @@ describe('geminiTransformer', () => {
         object: 'chat.completion',
         created: 1234567890,
         model: 'gpt-4',
-        choices: [{
-          index: 0,
-          message: { role: 'assistant', content: 'Hi there' },
-          finish_reason: 'stop',
-        }],
+        choices: [
+          {
+            index: 0,
+            message: { role: 'assistant', content: 'Hi there' },
+            finish_reason: 'stop',
+          },
+        ],
         usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
       };
       const result = geminiTransformer.encodeResponse(JSON.stringify(openaiResp), 200);
@@ -214,17 +214,21 @@ describe('geminiTransformer', () => {
       const events: SSEEvent[] = [
         {
           data: JSON.stringify({
-            candidates: [{
-              content: { parts: [{ text: 'Hello' }], role: 'model' },
-            }],
+            candidates: [
+              {
+                content: { parts: [{ text: 'Hello' }], role: 'model' },
+              },
+            ],
           }),
         },
         {
           data: JSON.stringify({
-            candidates: [{
-              content: { parts: [{ text: ' world' }], role: 'model' },
-              finishReason: 'STOP',
-            }],
+            candidates: [
+              {
+                content: { parts: [{ text: ' world' }], role: 'model' },
+                finishReason: 'STOP',
+              },
+            ],
             usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
           }),
         },

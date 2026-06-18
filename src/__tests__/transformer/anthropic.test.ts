@@ -36,9 +36,7 @@ describe('anthropicTransformer', () => {
       const body = {
         model: 'claude-3',
         system: 'You are helpful',
-        messages: [
-          { role: 'user', content: [{ type: 'text', text: 'Hello' }] },
-        ],
+        messages: [{ role: 'user', content: [{ type: 'text', text: 'Hello' }] }],
       };
       const result = anthropicTransformer.decodeRequest(body);
       expect(result.model).toBe('claude-3');
@@ -193,11 +191,13 @@ describe('anthropicTransformer', () => {
         object: 'chat.completion',
         created: 1234567890,
         model: 'gpt-4',
-        choices: [{
-          index: 0,
-          message: { role: 'assistant', content: 'Hi there' },
-          finish_reason: 'stop',
-        }],
+        choices: [
+          {
+            index: 0,
+            message: { role: 'assistant', content: 'Hi there' },
+            finish_reason: 'stop',
+          },
+        ],
         usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
       };
       const result = anthropicTransformer.encodeResponse(JSON.stringify(openaiResp), 200);
