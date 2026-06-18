@@ -4,7 +4,7 @@ import { keyRoutes } from './routes/keys';
 import { endpointRoutes } from './routes/endpoints';
 import { bindingRoutes } from './routes/bindings';
 import { modelRoutes } from './routes/models';
-import { proxyRoutes } from './routes/proxy';
+import { proxyRoutes, openaiProxyRoutes, anthropicProxyRoutes, geminiProxyRoutes } from './routes/proxy';
 import { statsRoutes } from './routes/stats';
 import { billingRoutes } from './routes/billing';
 
@@ -24,7 +24,10 @@ app.route('/v1/keys', bindingRoutes);
 app.route('/v1/endpoints', endpointRoutes);
 app.route('/v1/endpoints', billingRoutes);
 app.route('/v1/models', modelRoutes);
-app.route('/v1', proxyRoutes);
+app.route('/v1', proxyRoutes);            // /v1/chat/completions (backward compatible)
+app.route('/v1/openai', openaiProxyRoutes);
+app.route('/v1/anthropic', anthropicProxyRoutes);
+app.route('/v1/gemini', geminiProxyRoutes);
 app.route('/v1/stats', statsRoutes);
 
 // 404 catch-all
