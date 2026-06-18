@@ -2,7 +2,7 @@ import type { Env } from '../index';
 import type { Binding, Endpoint, EndpointModel, RouteResult, OpenAIRequest } from '../types';
 import { kvGet } from '../utils/kv';
 import { detectContentTypes } from './detector';
-import { estimateTokens } from '../utils/tokens';
+import { estimateTokens, fitsInContext } from '../utils/tokens';
 
 export interface RoutingError {
   type: 'no_binding' | 'context_too_long';
@@ -52,10 +52,16 @@ export async function routeRequest(
     };
   }
 
-  candidates.sort((a, b) => a.binding.priority - b.binding.priority);
+  // Sort by request_types specificity (more types = more specific, preferred) then by priority
+  candidates.sort((a, b) => {
+    const specA = a.binding.request_types.length;
+    const specB = b.binding.request_types.length;
+    if (specB !== specA) return specB - specA; // more types first
+    return a.binding.priority - b.binding.priority; // then lower priority number first
+  });
 
   const requestTokens = estimateTokens(request);
-  const fitting = candidates.filter((c) => c.model.context_window > requestTokens);
+  const fitting = candidates.filter((c) => fitsInContext(c.model.context_window, requestTokens));
 
   if (fitting.length === 0) {
     return {

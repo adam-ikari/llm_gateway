@@ -79,10 +79,19 @@ export const anthropicTransformer: Transformer = {
           if (part.type === 'text') {
             anthropicContent.push({ type: 'text', text: part.text });
           } else if (part.type === 'image_url') {
-            anthropicContent.push({
-              type: 'image',
-              source: { type: 'url', url: part.image_url.url },
-            });
+            if (part.image_url.url.startsWith('data:')) {
+              const [mimePart, base64Data] = part.image_url.url.split(';base64,');
+              const mediaType = mimePart.replace('data:', '');
+              anthropicContent.push({
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64Data },
+              });
+            } else {
+              anthropicContent.push({
+                type: 'image',
+                source: { type: 'url', url: part.image_url.url },
+              });
+            }
           }
         }
         messages.push({ role: msg.role, content: anthropicContent });
@@ -101,6 +110,14 @@ export const anthropicTransformer: Transformer = {
 
     if (req.stream !== undefined) {
       body.stream = req.stream;
+    }
+
+    if (req.temperature !== undefined) {
+      body.temperature = req.temperature;
+    }
+
+    if (req.top_p !== undefined) {
+      body.top_p = req.top_p;
     }
 
     return {
@@ -143,7 +160,7 @@ export const anthropicTransformer: Transformer = {
           total_tokens: (usage.input_tokens || 0) + (usage.output_tokens || 0),
         },
       };
-      return { body: JSON.stringify(openaiResp), status: 200 };
+      return { body: JSON.stringify(openaiResp), status };
     } catch {
       return { body, status };
     }
@@ -351,6 +368,13 @@ export const anthropicTransformer: Transformer = {
             event: 'content_block_stop',
             data: JSON.stringify({ type: 'content_block_stop', index: 0 }),
           });
+          controller.enqueue({
+            event: 'message_delta',
+            data: JSON.stringify({ type: 'message_delta', delta: { stop_reason: mapFinishReasonToAnthropic(finishReason) }, usage: { output_tokens: outputTokens } }),
+          });
+          controller.enqueue({ event: 'message_stop', data: JSON.stringify({ type: 'message_stop' }) });
+          controller.close();
+          return;
         }
       },
       cancel() {

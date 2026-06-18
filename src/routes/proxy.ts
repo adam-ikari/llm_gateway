@@ -25,13 +25,40 @@ anthropicProxyRoutes.post('/messages', handleProxy('anthropic'));
 // Gemini format: /v1/gemini/models/:model:generateContent
 const geminiProxyRoutes: ProxyHono = new Hono();
 geminiProxyRoutes.use('*', authMiddleware);
-geminiProxyRoutes.post('/models/:model\\:generateContent', handleProxy('gemini'));
+// Non-streaming
+geminiProxyRoutes.post('/models/:model\\:generateContent', handleGeminiProxy(false));
+// Streaming
+geminiProxyRoutes.post('/models/:model\\:streamGenerateContent', handleGeminiProxy(true));
 
 function handleProxy(clientFormat: string) {
   return async (c: any) => {
     const rawBody = await c.req.json();
     const auth = c.get('auth') as AuthContext;
     const outcome = await proxyRequest(c.env as Env, auth.key_id, auth.user_id, clientFormat, rawBody);
+
+    switch (outcome.type) {
+      case 'error':
+        return c.json(outcome.body, outcome.status as ContentfulStatusCode);
+      case 'json':
+        return c.json(outcome.body, outcome.status as ContentfulStatusCode);
+      case 'stream':
+        return new Response(outcome.stream, {
+          status: outcome.status,
+          headers: streamHeaders(),
+        });
+    }
+  };
+}
+
+function handleGeminiProxy(isStreaming: boolean) {
+  return async (c: any) => {
+    const rawBody = await c.req.json();
+    // Inject model from URL path param and stream flag into body
+    // so geminiTransformer.decodeRequest can read them
+    rawBody._model = c.req.param('model');
+    rawBody._stream = isStreaming;
+    const auth = c.get('auth') as AuthContext;
+    const outcome = await proxyRequest(c.env as Env, auth.key_id, auth.user_id, 'gemini', rawBody);
 
     switch (outcome.type) {
       case 'error':

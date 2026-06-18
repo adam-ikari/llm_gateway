@@ -59,13 +59,14 @@ export const geminiTransformer: Transformer = {
     const genConfig = b.generationConfig as Record<string, unknown> | undefined;
 
     const request: OpenAIRequest = {
-      model: '',
+      model: (b._model as string) || '',
       messages,
     };
 
     if (genConfig?.maxOutputTokens !== undefined) request.max_tokens = genConfig.maxOutputTokens as number;
     if (genConfig?.temperature !== undefined) request.temperature = genConfig.temperature as number;
     if (genConfig?.topP !== undefined) request.top_p = genConfig.topP as number;
+    if (b._stream) request.stream = true;
 
     return request;
   },
@@ -110,9 +111,13 @@ export const geminiTransformer: Transformer = {
       contents.push({ role, parts });
     }
 
+    const generationConfig: Record<string, unknown> = { maxOutputTokens: req.max_tokens ?? 4096 };
+    if (req.temperature !== undefined) generationConfig.temperature = req.temperature;
+    if (req.top_p !== undefined) generationConfig.topP = req.top_p;
+
     const body: Record<string, unknown> = {
       contents,
-      generationConfig: { maxOutputTokens: req.max_tokens ?? 4096 },
+      generationConfig,
     };
 
     if (systemInstructions.length > 0) {
@@ -120,7 +125,9 @@ export const geminiTransformer: Transformer = {
     }
 
     return {
-      url: `/v1beta/models/${realModel}:generateContent`,
+      url: req.stream
+        ? `/v1beta/models/${realModel}:streamGenerateContent?alt=sse`
+        : `/v1beta/models/${realModel}:generateContent`,
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
@@ -159,7 +166,7 @@ export const geminiTransformer: Transformer = {
         },
       };
 
-      return { body: JSON.stringify(openaiResp), status: 200 };
+      return { body: JSON.stringify(openaiResp), status };
     } catch {
       return { body, status };
     }

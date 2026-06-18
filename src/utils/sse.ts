@@ -37,6 +37,8 @@ export function parseSSEStream(upstream: ReadableStream<Uint8Array>): ReadableSt
           return;
         }
         buffer += decoder.decode(value, { stream: true });
+        // Normalize line endings per W3C SSE spec (\r\n and \r are also valid)
+        buffer = buffer.replace(/\r\n?/g, '\n');
       }
     },
     cancel() {
