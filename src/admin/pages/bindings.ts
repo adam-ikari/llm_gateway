@@ -31,16 +31,16 @@ export function bindingsScript(): string {
     var _bindingRows = [];
 
     function loadBindings(keyId) {
-      Promise.all([API.getBindings(keyId), API.listEndpoints(), API.listModels()]).then(function(results) {
+      Promise.all([API.getBindings(keyId), API.listEndpoints()]).then(function(results) {
         Store.set('endpoints', results[1]);
         _bindingRows = (results[0].bindings || []).map(function(b) {
           return { model_name: b.model_name, endpoint_id: b.endpoint_id, priority: b.priority, request_types: b.request_types || ['text'] };
         });
-        renderBindingsTable(results[1], results[2].data || []);
+        renderBindingsTable(results[1]);
       }).catch(function(err) { toast(err.message, 'error'); });
     }
 
-    function renderBindingsTable(endpoints, models) {
+    function renderBindingsTable(endpoints) {
       var el = document.getElementById('bindings-content');
       if (_bindingRows.length === 0) {
         el.innerHTML = emptyState(T.noData, '+ ' + T.addBinding, 'javascript:addBindingRow()');
@@ -50,9 +50,18 @@ export function bindingsScript(): string {
       for (var i = 0; i < endpoints.length; i++) {
         epOptions += '<option value="' + endpoints[i].endpoint_id + '">' + escHtml(endpoints[i].name) + ' (' + endpoints[i].format + ')</option>';
       }
+      // Build model options from all endpoints' supported_models
+      var modelSet = {};
+      for (var i = 0; i < endpoints.length; i++) {
+        var ep = endpoints[i];
+        for (var j = 0; j < ep.supported_models.length; j++) {
+          modelSet[ep.supported_models[j].name] = true;
+        }
+      }
       var modelOptions = '<option value="">' + T.select + '...</option>';
-      for (var i = 0; i < models.length; i++) {
-        modelOptions += '<option value="' + models[i].name + '">' + escHtml(models[i].display_name) + ' (' + models[i].name + ')</option>';
+      var modelNames = Object.keys(modelSet).sort();
+      for (var i = 0; i < modelNames.length; i++) {
+        modelOptions += '<option value="' + modelNames[i] + '">' + escHtml(modelNames[i]) + '</option>';
       }
       var html = '<div class="bg-white rounded-xl border border-gray-200 overflow-hidden"><table class="w-full text-sm">' +
         '<thead class="bg-gray-50 border-b"><tr>' +
@@ -92,20 +101,13 @@ export function bindingsScript(): string {
     function addBindingRow() {
       _bindingRows.push({ model_name: '', endpoint_id: '', priority: 0, request_types: ['text'] });
       var eps = Store.get('endpoints') || [];
-      var models = Store.get('models') || [];
-      // fetch models if not cached
-      if (models.length === 0) {
-        API.listModels().then(function(d) { Store.set('models', d.data || []); renderBindingsTable(eps, d.data || []); });
-      } else {
-        renderBindingsTable(eps, models);
-      }
+      renderBindingsTable(eps);
     }
 
     function removeBindingRow(idx) {
       _bindingRows.splice(idx, 1);
       var eps = Store.get('endpoints') || [];
-      var models = Store.get('models') || [];
-      renderBindingsTable(eps, models);
+      renderBindingsTable(eps);
     }
 
     function updateBindingField(idx, field, value) {
