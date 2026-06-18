@@ -1,5 +1,12 @@
 import type { Transformer } from './types';
-import type { OpenAIRequest, OpenAIResponse, OpenAIMessage, OpenAIContentPart, TransformedRequest, SSEEvent } from '../types';
+import type {
+  OpenAIRequest,
+  OpenAIResponse,
+  OpenAIMessage,
+  OpenAIContentPart,
+  TransformedRequest,
+  SSEEvent,
+} from '../types';
 
 export const geminiTransformer: Transformer = {
   format: 'gemini',
@@ -147,18 +154,23 @@ export const geminiTransformer: Transformer = {
       const resp = JSON.parse(body);
       const candidates = resp.candidates || [];
       const first = candidates[0]?.content?.parts || [];
-      const text = first.filter((p: { text?: string }) => p.text).map((p: { text?: string }) => p.text).join('\n');
+      const text = first
+        .filter((p: { text?: string }) => p.text)
+        .map((p: { text?: string }) => p.text)
+        .join('\n');
 
       const openaiResp: OpenAIResponse = {
         id: `chatcmpl-${Date.now()}`,
         object: 'chat.completion',
         created: Math.floor(Date.now() / 1000),
         model: resp.modelVersion || '',
-        choices: [{
-          index: 0,
-          message: { role: 'assistant', content: text },
-          finish_reason: mapGeminiFinishReason(candidates[0]?.finishReason),
-        }],
+        choices: [
+          {
+            index: 0,
+            message: { role: 'assistant', content: text },
+            finish_reason: mapGeminiFinishReason(candidates[0]?.finishReason),
+          },
+        ],
         usage: {
           prompt_tokens: resp.usageMetadata?.promptTokenCount || 0,
           completion_tokens: resp.usageMetadata?.candidatesTokenCount || 0,
@@ -181,13 +193,15 @@ export const geminiTransformer: Transformer = {
       const finishReason = resp.choices?.[0]?.finish_reason;
 
       const geminiResp = {
-        candidates: [{
-          content: {
-            parts: [{ text: content || '' }],
-            role: 'model',
+        candidates: [
+          {
+            content: {
+              parts: [{ text: content || '' }],
+              role: 'model',
+            },
+            finishReason: mapFinishReasonToGemini(finishReason),
           },
-          finishReason: mapFinishReasonToGemini(finishReason),
-        }],
+        ],
         usageMetadata: {
           promptTokenCount: resp.usage?.prompt_tokens || 0,
           candidatesTokenCount: resp.usage?.completion_tokens || 0,
@@ -227,7 +241,10 @@ export const geminiTransformer: Transformer = {
         if (data.error) {
           controller.enqueue({
             data: JSON.stringify({
-              error: { message: (data.error as Record<string, string>).message || 'Upstream error', type: 'upstream_error' },
+              error: {
+                message: (data.error as Record<string, string>).message || 'Upstream error',
+                type: 'upstream_error',
+              },
             }),
           });
           controller.enqueue({ data: '[DONE]' });
@@ -236,7 +253,9 @@ export const geminiTransformer: Transformer = {
         }
 
         const candidates = data.candidates as Array<Record<string, unknown>> | undefined;
-        const parts = (candidates?.[0]?.content as Record<string, unknown>)?.parts as Array<Record<string, unknown>> | undefined;
+        const parts = (candidates?.[0]?.content as Record<string, unknown>)?.parts as
+          | Array<Record<string, unknown>>
+          | undefined;
         const finishReason = candidates?.[0]?.finishReason as string | undefined;
         const usageMeta = data.usageMetadata as Record<string, number> | undefined;
 
@@ -317,16 +336,19 @@ export const geminiTransformer: Transformer = {
         const geminiChunk: Record<string, unknown> = {};
 
         if (parts.length > 0) {
-          geminiChunk.candidates = [{
-            content: { parts, role: 'model' },
-          }];
+          geminiChunk.candidates = [
+            {
+              content: { parts, role: 'model' },
+            },
+          ];
         }
 
         if (finishReason) {
           if (!geminiChunk.candidates) {
             geminiChunk.candidates = [{ content: { parts: [], role: 'model' } }];
           }
-          (geminiChunk.candidates as Array<Record<string, unknown>>)[0].finishReason = mapFinishReasonToGemini(finishReason);
+          (geminiChunk.candidates as Array<Record<string, unknown>>)[0].finishReason =
+            mapFinishReasonToGemini(finishReason);
         }
 
         if (usage) {
@@ -352,19 +374,27 @@ export const geminiTransformer: Transformer = {
 
 function mapGeminiFinishReason(reason: string): string {
   switch (reason) {
-    case 'STOP': return 'stop';
-    case 'MAX_TOKENS': return 'length';
-    case 'SAFETY': return 'content_filter';
-    default: return reason || 'stop';
+    case 'STOP':
+      return 'stop';
+    case 'MAX_TOKENS':
+      return 'length';
+    case 'SAFETY':
+      return 'content_filter';
+    default:
+      return reason || 'stop';
   }
 }
 
 function mapFinishReasonToGemini(reason: string | undefined): string {
   switch (reason) {
-    case 'stop': return 'STOP';
-    case 'length': return 'MAX_TOKENS';
-    case 'content_filter': return 'SAFETY';
-    default: return 'STOP';
+    case 'stop':
+      return 'STOP';
+    case 'length':
+      return 'MAX_TOKENS';
+    case 'content_filter':
+      return 'SAFETY';
+    default:
+      return 'STOP';
   }
 }
 

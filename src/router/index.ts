@@ -17,10 +17,7 @@ export async function routeRequest(
 ): Promise<RouteResult | RoutingError> {
   const detectedTypes = detectContentTypes(request.messages);
 
-  const bindingIndex = await kvGet<{ model_name: string; endpoint_id: string }[]>(
-    env,
-    `binding_index/${keyId}`,
-  );
+  const bindingIndex = await kvGet<{ model_name: string; endpoint_id: string }[]>(env, `binding_index/${keyId}`);
   if (!bindingIndex || bindingIndex.length === 0) {
     return { type: 'no_binding', message: 'No endpoints configured for key' };
   }

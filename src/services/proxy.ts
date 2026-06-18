@@ -1,5 +1,5 @@
 import type { Env } from '../index';
-import type { OpenAIRequest, SSEEvent } from '../types';
+import type { OpenAIRequest } from '../types';
 import type { Transformer } from '../transformer/types';
 import { openaiTransformer } from '../transformer/openai';
 import { anthropicTransformer } from '../transformer/anthropic';
@@ -30,7 +30,11 @@ export async function proxyRequest(
 ): Promise<ProxyOutcome> {
   const clientTransformer = transformers[clientFormat];
   if (!clientTransformer) {
-    return { type: 'error', status: 400, body: { error: { message: `Unsupported client format: ${clientFormat}`, type: 'invalid_request' } } };
+    return {
+      type: 'error',
+      status: 400,
+      body: { error: { message: `Unsupported client format: ${clientFormat}`, type: 'invalid_request' } },
+    };
   }
 
   // Step 1: Decode client request to OpenAI intermediate format
@@ -38,24 +42,45 @@ export async function proxyRequest(
   try {
     openaiRequest = clientTransformer.decodeRequest(rawBody);
   } catch (e) {
-    return { type: 'error', status: 400, body: { error: { message: `Invalid request body for format ${clientFormat}: ${e instanceof Error ? e.message : 'parse error'}`, type: 'invalid_request' } } };
+    return {
+      type: 'error',
+      status: 400,
+      body: {
+        error: {
+          message: `Invalid request body for format ${clientFormat}: ${e instanceof Error ? e.message : 'parse error'}`,
+          type: 'invalid_request',
+        },
+      },
+    };
   }
 
   if (!openaiRequest.model || !openaiRequest.messages || !Array.isArray(openaiRequest.messages)) {
-    return { type: 'error', status: 400, body: { error: { message: 'model and messages are required', type: 'invalid_request' } } };
+    return {
+      type: 'error',
+      status: 400,
+      body: { error: { message: 'model and messages are required', type: 'invalid_request' } },
+    };
   }
 
   // Step 2: Route
   const route = await routeRequest(env, keyId, openaiRequest);
   if ('type' in route) {
     const errorStatus = route.type === 'context_too_long' ? 400 : 404;
-    return { type: 'error', status: errorStatus, body: { error: { message: route.message, type: route.type, ...(route.extra || {}) } } };
+    return {
+      type: 'error',
+      status: errorStatus,
+      body: { error: { message: route.message, type: route.type, ...(route.extra || {}) } },
+    };
   }
 
   const { endpoint, model } = route;
   const upstreamTransformer = transformers[endpoint.format];
   if (!upstreamTransformer) {
-    return { type: 'error', status: 500, body: { error: { message: `Unsupported upstream format: ${endpoint.format}`, type: 'internal_error' } } };
+    return {
+      type: 'error',
+      status: 500,
+      body: { error: { message: `Unsupported upstream format: ${endpoint.format}`, type: 'internal_error' } },
+    };
   }
 
   // Step 3: Encode to upstream format
@@ -72,7 +97,11 @@ export async function proxyRequest(
       body: transformed.body,
     });
   } catch {
-    return { type: 'error', status: 502, body: { error: { message: 'Upstream timeout or connection error', type: 'gateway_error' } } };
+    return {
+      type: 'error',
+      status: 502,
+      body: { error: { message: 'Upstream timeout or connection error', type: 'gateway_error' } },
+    };
   }
 
   const responseTimeMs = Date.now() - startTime;
@@ -100,7 +129,11 @@ export async function proxyRequest(
 
   if (isPassthrough) {
     let parsedBody: unknown;
-    try { parsedBody = JSON.parse(responseBody); } catch { parsedBody = responseBody; }
+    try {
+      parsedBody = JSON.parse(responseBody);
+    } catch {
+      parsedBody = responseBody;
+    }
     void recordNonStreamStats(env, userId, keyId, openaiRequest.model, responseTimeMs, response.status, parsedBody);
     return { type: 'json', status: response.status, body: parsedBody };
   }
@@ -109,14 +142,26 @@ export async function proxyRequest(
   const { body: clientBody } = clientTransformer.encodeResponse(openaiBody, status);
 
   let parsedBody: unknown;
-  try { parsedBody = JSON.parse(clientBody); } catch { parsedBody = clientBody; }
+  try {
+    parsedBody = JSON.parse(clientBody);
+  } catch {
+    parsedBody = clientBody;
+  }
 
   void recordNonStreamStats(env, userId, keyId, openaiRequest.model, responseTimeMs, status, parsedBody);
 
   return { type: 'json', status, body: parsedBody };
 }
 
-async function recordNonStreamStats(env: Env, userId: string, keyId: string, modelName: string, responseTimeMs: number, statusCode: number, body: unknown): Promise<void> {
+async function recordNonStreamStats(
+  env: Env,
+  userId: string,
+  keyId: string,
+  modelName: string,
+  responseTimeMs: number,
+  statusCode: number,
+  body: unknown,
+): Promise<void> {
   let tokens = 0;
   if (typeof body === 'object' && body !== null) {
     const usage = (body as { usage?: { total_tokens?: number } }).usage;
@@ -125,6 +170,13 @@ async function recordNonStreamStats(env: Env, userId: string, keyId: string, mod
   void recordStats(env, userId, keyId, modelName, { tokens, responseTimeMs, statusCode });
 }
 
-async function recordStreamStats(env: Env, userId: string, keyId: string, modelName: string, responseTimeMs: number, statusCode: number): Promise<void> {
+async function recordStreamStats(
+  env: Env,
+  userId: string,
+  keyId: string,
+  modelName: string,
+  responseTimeMs: number,
+  statusCode: number,
+): Promise<void> {
   void recordStats(env, userId, keyId, modelName, { tokens: 0, responseTimeMs, statusCode });
 }

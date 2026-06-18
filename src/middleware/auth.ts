@@ -10,7 +10,10 @@ export interface AuthContext {
   user_id: string;
 }
 
-export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { auth: AuthContext } }>, next: Next): Promise<Response | void> {
+export async function authMiddleware(
+  c: Context<{ Bindings: Env; Variables: { auth: AuthContext } }>,
+  next: Next,
+): Promise<Response | void> {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return authError(c, 'Missing or invalid Authorization header');
@@ -24,7 +27,7 @@ export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { au
   const keyHash = await hashApiKey(apiKey);
   const prefix = apiKey.slice(0, 11);
 
-  const candidates = await kvGet<string[]>(c.env, `key_prefix_index/${prefix}`) || [];
+  const candidates = (await kvGet<string[]>(c.env, `key_prefix_index/${prefix}`)) || [];
 
   for (const keyId of candidates) {
     const keyData = await kvGet<ApiKey>(c.env, `keys/${keyId}`);

@@ -33,13 +33,12 @@ export async function recordStats(
   data: { tokens: number; responseTimeMs: number; statusCode: number },
 ): Promise<void> {
   const key = statsKey(userId, today());
-  let stats = (await kvGet<Stats>(env, key)) || emptyStats();
+  const stats = (await kvGet<Stats>(env, key)) || emptyStats();
 
   const oldTotalReqs = stats.total_requests;
   stats.total_requests += 1;
   stats.total_tokens += data.tokens;
-  stats.avg_response_time_ms =
-    (stats.avg_response_time_ms * oldTotalReqs + data.responseTimeMs) / stats.total_requests;
+  stats.avg_response_time_ms = (stats.avg_response_time_ms * oldTotalReqs + data.responseTimeMs) / stats.total_requests;
 
   const codeStr = String(data.statusCode);
   stats.status_codes[codeStr] = (stats.status_codes[codeStr] || 0) + 1;
@@ -66,12 +65,22 @@ export async function getStats(env: Env, userId: string, date?: string): Promise
   return (await kvGet<Stats>(env, key)) || emptyStats();
 }
 
-export async function getKeyStats(env: Env, userId: string, keyId: string, date?: string): Promise<StatsByEntity | null> {
+export async function getKeyStats(
+  env: Env,
+  userId: string,
+  keyId: string,
+  date?: string,
+): Promise<StatsByEntity | null> {
   const stats = await getStats(env, userId, date);
   return stats.by_key[keyId] || null;
 }
 
-export async function getModelStats(env: Env, userId: string, modelName: string, date?: string): Promise<StatsByEntity | null> {
+export async function getModelStats(
+  env: Env,
+  userId: string,
+  modelName: string,
+  date?: string,
+): Promise<StatsByEntity | null> {
   const stats = await getStats(env, userId, date);
   return stats.by_model[modelName] || null;
 }

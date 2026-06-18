@@ -49,9 +49,7 @@ billingRoutes.get('/endpoints/balances', async (c) => {
   const results = [];
   for (const ep of endpoints) {
     const handler = getBillingHandler(ep.format);
-    const balance = handler
-      ? await handler.queryBalance(ep.api_key, ep.base_url)
-      : { available: false };
+    const balance = handler ? await handler.queryBalance(ep.api_key, ep.base_url) : { available: false };
 
     results.push({
       endpoint_id: ep.endpoint_id,

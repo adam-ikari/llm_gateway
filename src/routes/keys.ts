@@ -23,13 +23,16 @@ keyRoutes.post('/', async (c) => {
 keyRoutes.get('/', async (c) => {
   const auth = c.get('auth');
   const keys = await keyService.listKeys(c.env, auth.user_id);
-  return jsonOk(c, keys.map((k) => ({
-    key_id: k.key_id,
-    name: k.name,
-    key_prefix: k.key_prefix,
-    is_active: k.is_active,
-    created_at: k.created_at,
-  })));
+  return jsonOk(
+    c,
+    keys.map((k) => ({
+      key_id: k.key_id,
+      name: k.name,
+      key_prefix: k.key_prefix,
+      is_active: k.is_active,
+      created_at: k.created_at,
+    })),
+  );
 });
 
 keyRoutes.get('/:key_id', async (c) => {

@@ -1,5 +1,12 @@
 import type { Transformer } from './types';
-import type { OpenAIRequest, OpenAIResponse, OpenAIMessage, OpenAIContentPart, TransformedRequest, SSEEvent } from '../types';
+import type {
+  OpenAIRequest,
+  OpenAIResponse,
+  OpenAIMessage,
+  OpenAIContentPart,
+  TransformedRequest,
+  SSEEvent,
+} from '../types';
 
 export const anthropicTransformer: Transformer = {
   format: 'anthropic',
@@ -146,14 +153,16 @@ export const anthropicTransformer: Transformer = {
         object: 'chat.completion',
         created: Math.floor(Date.now() / 1000),
         model: resp.model || '',
-        choices: [{
-          index: 0,
-          message: {
-            role: 'assistant',
-            content: extractText(resp.content),
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: extractText(resp.content),
+            },
+            finish_reason: mapStopReason(resp.stop_reason),
           },
-          finish_reason: mapStopReason(resp.stop_reason),
-        }],
+        ],
         usage: {
           prompt_tokens: usage.input_tokens || 0,
           completion_tokens: usage.output_tokens || 0,
@@ -222,7 +231,7 @@ export const anthropicTransformer: Transformer = {
           case 'message_start': {
             const msg = (data as { message?: Record<string, unknown> }).message;
             if (msg?.id) msgId = `chatcmpl-${msg.id}`;
-            inputTokens = ((msg?.usage as Record<string, number>)?.input_tokens) || 0;
+            inputTokens = (msg?.usage as Record<string, number>)?.input_tokens || 0;
             controller.enqueue({
               data: JSON.stringify({
                 id: msgId,
@@ -276,7 +285,10 @@ export const anthropicTransformer: Transformer = {
           case 'error': {
             controller.enqueue({
               data: JSON.stringify({
-                error: { message: (data as { error?: { message?: string } }).error?.message || 'Upstream error', type: 'upstream_error' },
+                error: {
+                  message: (data as { error?: { message?: string } }).error?.message || 'Upstream error',
+                  type: 'upstream_error',
+                },
               }),
             });
             controller.enqueue({ data: '[DONE]' });
@@ -304,7 +316,11 @@ export const anthropicTransformer: Transformer = {
         if (done) {
           controller.enqueue({
             event: 'message_delta',
-            data: JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: outputTokens } }),
+            data: JSON.stringify({
+              type: 'message_delta',
+              delta: { stop_reason: 'end_turn' },
+              usage: { output_tokens: outputTokens },
+            }),
           });
           controller.enqueue({ event: 'message_stop', data: JSON.stringify({ type: 'message_stop' }) });
           controller.close();
@@ -314,7 +330,11 @@ export const anthropicTransformer: Transformer = {
         if (value.data === '[DONE]') {
           controller.enqueue({
             event: 'message_delta',
-            data: JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: outputTokens } }),
+            data: JSON.stringify({
+              type: 'message_delta',
+              delta: { stop_reason: 'end_turn' },
+              usage: { output_tokens: outputTokens },
+            }),
           });
           controller.enqueue({ event: 'message_stop', data: JSON.stringify({ type: 'message_stop' }) });
           controller.close();
@@ -358,7 +378,11 @@ export const anthropicTransformer: Transformer = {
           outputTokens += 1;
           controller.enqueue({
             event: 'content_block_delta',
-            data: JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: delta.content } }),
+            data: JSON.stringify({
+              type: 'content_block_delta',
+              index: 0,
+              delta: { type: 'text_delta', text: delta.content },
+            }),
           });
         }
 
@@ -370,7 +394,11 @@ export const anthropicTransformer: Transformer = {
           });
           controller.enqueue({
             event: 'message_delta',
-            data: JSON.stringify({ type: 'message_delta', delta: { stop_reason: mapFinishReasonToAnthropic(finishReason) }, usage: { output_tokens: outputTokens } }),
+            data: JSON.stringify({
+              type: 'message_delta',
+              delta: { stop_reason: mapFinishReasonToAnthropic(finishReason) },
+              usage: { output_tokens: outputTokens },
+            }),
           });
           controller.enqueue({ event: 'message_stop', data: JSON.stringify({ type: 'message_stop' }) });
           controller.close();
@@ -388,24 +416,36 @@ export const anthropicTransformer: Transformer = {
 
 function extractText(content: Array<{ type: string; text?: string }>): string {
   if (!Array.isArray(content)) return '';
-  return content.filter((c) => c.type === 'text').map((c) => c.text || '').join('\n');
+  return content
+    .filter((c) => c.type === 'text')
+    .map((c) => c.text || '')
+    .join('\n');
 }
 
 function mapStopReason(reason: string): string {
   switch (reason) {
-    case 'end_turn': return 'stop';
-    case 'max_tokens': return 'length';
-    case 'stop_sequence': return 'stop';
-    case 'tool_use': return 'tool_calls';
-    default: return reason || 'stop';
+    case 'end_turn':
+      return 'stop';
+    case 'max_tokens':
+      return 'length';
+    case 'stop_sequence':
+      return 'stop';
+    case 'tool_use':
+      return 'tool_calls';
+    default:
+      return reason || 'stop';
   }
 }
 
 function mapFinishReasonToAnthropic(reason: string | undefined): string {
   switch (reason) {
-    case 'stop': return 'end_turn';
-    case 'length': return 'max_tokens';
-    case 'tool_calls': return 'tool_use';
-    default: return 'end_turn';
+    case 'stop':
+      return 'end_turn';
+    case 'length':
+      return 'max_tokens';
+    case 'tool_calls':
+      return 'tool_use';
+    default:
+      return 'end_turn';
   }
 }

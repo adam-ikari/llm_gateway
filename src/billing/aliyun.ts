@@ -10,7 +10,13 @@ const aliyunHandler: BillingHandler = {
       });
       if (!resp.ok) return { available: false };
       const data = await resp.json<{ output: { balance: number } }>();
-      return { available: true, total: data.output.balance, remaining: data.output.balance, currency: 'CNY', raw: data };
+      return {
+        available: true,
+        total: data.output.balance,
+        remaining: data.output.balance,
+        currency: 'CNY',
+        raw: data,
+      };
     } catch {
       return { available: false };
     }

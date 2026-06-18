@@ -21,18 +21,18 @@ export async function kvDelete(env: Env, key: string): Promise<void> {
 // ========== Index helpers (KV doesn't support list operations) ==========
 
 export async function indexAdd<T>(env: Env, indexKey: string, item: T): Promise<void> {
-  const current = await kvGet<T[]>(env, indexKey) || [];
+  const current = (await kvGet<T[]>(env, indexKey)) || [];
   current.push(item);
   await kvPut(env, indexKey, current);
 }
 
-export async function indexRemove<T>(
-  env: Env,
-  indexKey: string,
-  predicate: (item: T) => boolean,
-): Promise<void> {
-  const current = await kvGet<T[]>(env, indexKey) || [];
-  await kvPut(env, indexKey, current.filter((item) => !predicate(item)));
+export async function indexRemove<T>(env: Env, indexKey: string, predicate: (item: T) => boolean): Promise<void> {
+  const current = (await kvGet<T[]>(env, indexKey)) || [];
+  await kvPut(
+    env,
+    indexKey,
+    current.filter((item) => !predicate(item)),
+  );
 }
 
 export async function indexList<T>(env: Env, indexKey: string): Promise<T[]> {

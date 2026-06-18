@@ -12,10 +12,7 @@ export function jsonError(
   type: string,
   extra: Record<string, unknown> = {},
 ): Response {
-  return c.json(
-    { error: { message, type, ...extra } },
-    status as ContentfulStatusCode,
-  );
+  return c.json({ error: { message, type, ...extra } }, status as ContentfulStatusCode);
 }
 
 export function authError(c: Context, message = 'Invalid API key'): Response {

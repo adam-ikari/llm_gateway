@@ -16,12 +16,7 @@ bindingRoutes.put('/:key_id/bindings', async (c) => {
   }
 
   try {
-    const result = await bindingService.setBindings(
-      c.env,
-      c.get('auth').user_id,
-      c.req.param('key_id'),
-      body.bindings,
-    );
+    const result = await bindingService.setBindings(c.env, c.get('auth').user_id, c.req.param('key_id'), body.bindings);
     return jsonOk(c, { bindings: result });
   } catch (e) {
     if (e instanceof Error && e.message === 'Key not found') {
@@ -33,11 +28,7 @@ bindingRoutes.put('/:key_id/bindings', async (c) => {
 
 bindingRoutes.get('/:key_id/bindings', async (c) => {
   try {
-    const bindings = await bindingService.getBindings(
-      c.env,
-      c.get('auth').user_id,
-      c.req.param('key_id'),
-    );
+    const bindings = await bindingService.getBindings(c.env, c.get('auth').user_id, c.req.param('key_id'));
     return jsonOk(c, { bindings });
   } catch (e) {
     if (e instanceof Error && e.message === 'Key not found') {

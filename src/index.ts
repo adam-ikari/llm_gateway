@@ -24,7 +24,7 @@ app.route('/v1/keys', bindingRoutes);
 app.route('/v1/endpoints', endpointRoutes);
 app.route('/v1/endpoints', billingRoutes);
 app.route('/v1/models', modelRoutes);
-app.route('/v1', proxyRoutes);            // /v1/chat/completions (backward compatible)
+app.route('/v1', proxyRoutes); // /v1/chat/completions (backward compatible)
 app.route('/v1/openai', openaiProxyRoutes);
 app.route('/v1/anthropic', anthropicProxyRoutes);
 app.route('/v1/gemini', geminiProxyRoutes);
