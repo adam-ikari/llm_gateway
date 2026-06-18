@@ -2,6 +2,9 @@ name = "llm-gateway"
 compatibility_date = "2026-06-18"
 main = "src/index.ts"
 
+# Create KV namespaces before deploy:
+#   wrangler kv:namespace create "KV"
+#   wrangler kv:namespace create "KV" --preview
 [[kv_namespaces]]
 binding = "KV"
 id = "PLACEHOLDER"
