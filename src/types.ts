@@ -169,3 +169,10 @@ export interface RouteResult {
   endpoint: Endpoint;
   model: EndpointModel;
 }
+
+// ========== SSE Streaming ==========
+
+export interface SSEEvent {
+  event?: string;
+  data: string;
+}
