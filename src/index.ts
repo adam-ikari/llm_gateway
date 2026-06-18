@@ -6,6 +6,7 @@ import { bindingRoutes } from './routes/bindings';
 import { modelRoutes } from './routes/models';
 import { proxyRoutes, openaiProxyRoutes, anthropicProxyRoutes, geminiProxyRoutes } from './routes/proxy';
 import { statsRoutes } from './routes/stats';
+import { adminRoutes } from './admin/index';
 import { billingRoutes } from './routes/billing';
 
 export interface Env {
@@ -29,6 +30,9 @@ app.route('/v1/openai', openaiProxyRoutes);
 app.route('/v1/anthropic', anthropicProxyRoutes);
 app.route('/v1/gemini', geminiProxyRoutes);
 app.route('/v1/stats', statsRoutes);
+
+// Admin panel
+app.route('/admin', adminRoutes);
 
 // 404 catch-all
 app.all('*', (c) => c.json({ error: { message: 'Not found', type: 'not_found' } }, 404));
