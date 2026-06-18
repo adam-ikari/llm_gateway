@@ -4,7 +4,6 @@ import { keysScript } from './pages/keys';
 import { endpointsScript } from './pages/endpoints';
 import { bindingsScript } from './pages/bindings';
 import { statsScript } from './pages/stats';
-import { modelsScript } from './pages/models';
 
 // Split "</script>" to avoid HTML parser closing the outer <script> tag prematurely
 const SC = '</' + 'script>';
@@ -269,7 +268,6 @@ export function renderHTML(): string {
         { id: 'dashboard', hash: '#dashboard', icon: '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>', label: T.dashboard },
         { id: 'keys', hash: '#keys', icon: '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>', label: T.keys },
         { id: 'endpoints', hash: '#endpoints', icon: '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/></svg>', label: T.endpoints },
-        { id: 'models', hash: '#models', icon: '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', label: T.models },
         { id: 'stats', hash: '#stats', icon: '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>', label: T.stats },
       ];
       var sidebarLinks = '';
@@ -330,7 +328,6 @@ export function renderHTML(): string {
         endpoints: endpointsPage,
         bindings: bindingsPage,
         stats: statsPage,
-        models: modelsPage,
       };
       var renderer = pageRenderers[route.page];
       if (renderer) { renderer(app, route.params); }
@@ -348,7 +345,6 @@ export function renderHTML(): string {
     ${endpointsScript()}
     ${bindingsScript()}
     ${statsScript()}
-    ${modelsScript()}
 
     // ==================== Init ====================
     window.addEventListener('hashchange', renderPage);
