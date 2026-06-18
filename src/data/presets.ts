@@ -1,0 +1,58 @@
+import type { ModelPreset } from '../types';
+
+export const PRESET_MODELS: ModelPreset[] = [
+  {
+    name: 'gpt-4o',
+    display_name: 'GPT-4o',
+    description: 'OpenAI GPT-4o multimodal model',
+    capabilities: { text: true, image: true, audio: false, video: false, file: false },
+    context_window: 128000,
+    max_output_tokens: 16384,
+    default_format: 'openai',
+  },
+  {
+    name: 'gpt-4o-mini',
+    display_name: 'GPT-4o Mini',
+    description: 'OpenAI GPT-4o Mini cost-efficient model',
+    capabilities: { text: true, image: true, audio: false, video: false, file: false },
+    context_window: 128000,
+    max_output_tokens: 16384,
+    default_format: 'openai',
+  },
+  {
+    name: 'claude-sonnet-4-20250514',
+    display_name: 'Claude Sonnet 4',
+    description: 'Anthropic Claude Sonnet 4',
+    capabilities: { text: true, image: true, audio: false, video: false, file: false },
+    context_window: 200000,
+    max_output_tokens: 8192,
+    default_format: 'anthropic',
+  },
+  {
+    name: 'claude-opus-4-20250514',
+    display_name: 'Claude Opus 4',
+    description: 'Anthropic Claude Opus 4',
+    capabilities: { text: true, image: true, audio: false, video: false, file: false },
+    context_window: 200000,
+    max_output_tokens: 8192,
+    default_format: 'anthropic',
+  },
+  {
+    name: 'gemini-2.5-flash',
+    display_name: 'Gemini 2.5 Flash',
+    description: 'Google Gemini 2.5 Flash model',
+    capabilities: { text: true, image: true, audio: true, video: false, file: false },
+    context_window: 1048576,
+    max_output_tokens: 8192,
+    default_format: 'gemini',
+  },
+  {
+    name: 'gemini-2.5-pro',
+    display_name: 'Gemini 2.5 Pro',
+    description: 'Google Gemini 2.5 Pro model',
+    capabilities: { text: true, image: true, audio: true, video: false, file: false },
+    context_window: 1048576,
+    max_output_tokens: 16384,
+    default_format: 'gemini',
+  },
+];
